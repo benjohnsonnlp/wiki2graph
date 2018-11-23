@@ -59,12 +59,12 @@ class Crawler:
         self.html = ''
         self.soup = None
 
-        self.next()
+        next(self)
 
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         if not self.next_pages or len(self.visited) == self.limit:
             return None
 
@@ -118,5 +118,5 @@ class Crawler:
 if __name__ == '__main__':
     c = Crawler('http://pokemon.wikia.com/wiki/Pokémon_Wiki', limit=200)
 
-    while c.next():
-        print(c.current_title())
+    for thing in c:
+        print(thing.current_title())
