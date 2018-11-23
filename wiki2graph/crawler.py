@@ -34,7 +34,10 @@ class Crawler:
     def __init__(self, base_url, cache="cache/", prioritization_scheme=DefaultPrioritizationScheme):
         self.base_url = base_url
 
+        # create the cache_dir if not there
         self.cache_dir = cache
+        if not os.path.exists(self.cache_dir):
+            os.makedirs(self.cache_dir)
 
         try:
             with open(os.path.join(self.cache_dir, 'cache_dict.json')) as f:
