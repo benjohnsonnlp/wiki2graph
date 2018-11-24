@@ -108,7 +108,7 @@ class Crawler:
             json.dump(self.cache_dict, f, indent=4)
 
         # save html
-        with open(os.path.join(self.cache_dir, file_id), 'w') as f:
+        with open(os.path.join(self.cache_dir, file_id), 'w', encoding='utf-8') as f:
             f.write(self.html)
 
     def current_title(self):
