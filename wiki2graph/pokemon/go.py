@@ -4,7 +4,10 @@ from wiki2graph.graph import extract, Extractor
 
 class PokemonExtractor(Extractor):
     def extract(self, soup):
-        return []
+        is_pokemon_page = soup.find_all('.PokéBox')
+        if not is_pokemon_page:
+            return []
+
 
 
 if __name__ == '__main__':
