@@ -75,7 +75,7 @@ class Crawler:
         # get the next page, either from the cache or the web
         if self.current_page in self.cache_dict:
             logger.info("Cache hit on {}".format(self.current_page))
-            with open(os.path.join(self.cache_dir, self.cache_dict[self.current_page])) as f:
+            with open(os.path.join(self.cache_dir, self.cache_dict[self.current_page]), encoding='utf-8') as f:
                 self.html = '\n'.join(f.readlines())
         else:
             logger.info('Getting page: {}'.format(self.current_page))
