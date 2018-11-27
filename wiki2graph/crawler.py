@@ -3,11 +3,9 @@ import logging
 import os
 from heapq import heappop, heappush
 
-import requests
 from bs4 import BeautifulSoup
+from selenium import webdriver
 
-FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-logging.basicConfig(format=FORMAT)
 logger = logging.getLogger(__name__)
 
 
@@ -24,14 +22,18 @@ class DefaultPrioritizationScheme:
     def prioritize(self, page):
         output = None
         if page.startswith('/wiki'):
-            output = (50, page)  # assign a mid level priority to pages in the wiki
+            if '?' in page:
+                output = (100, page)  # pages with a ? in the url are usually talk pages
+            else:
+                output = (50, page)  # assign a mid level priority to pages in the wiki
         else:
             pass  # don't put in pages that aren't in the base url
         return output
 
 
 class Crawler:
-    def __init__(self, base_url, cache="cache/", prioritization_scheme=DefaultPrioritizationScheme, limit=100):
+    def __init__(self, base_url, starting_page, cache="cache/", prioritization_scheme=DefaultPrioritizationScheme,
+                 limit=100):
         self.base_url = base_url
         self.limit = limit
 
@@ -52,12 +54,14 @@ class Crawler:
 
         self.visited = []
 
-        self.next_pages = [(1, base_url)]
+        self.next_pages = [(1, starting_page)]
         self.prioritization_scheme = prioritization_scheme(self)
 
         self.current_page = None
         self.html = ''
         self.soup = None
+
+        self.driver = webdriver.PhantomJS()
 
         next(self)
 
@@ -78,11 +82,15 @@ class Crawler:
             with open(os.path.join(self.cache_dir, self.cache_dict[self.current_page]), encoding='utf-8') as f:
                 self.html = '\n'.join(f.readlines())
         else:
-            logger.info('Getting page: {}'.format(self.current_page))
             page_to_get = self.current_page  # for handling relative URLs
             if self.current_page.startswith('/'):
                 page_to_get = self.base_url + self.current_page
-            self.html = requests.get(page_to_get).text
+
+            logger.info('Getting page: {}'.format(page_to_get))
+
+            self.driver.get(page_to_get)
+            self.html = self.driver.page_source
+            # self.html = requests.get(page_to_get).text
             self.cache_current()
 
         self.soup = BeautifulSoup(self.html, 'html.parser')
@@ -116,7 +124,7 @@ class Crawler:
 
 
 if __name__ == '__main__':
-    c = Crawler('http://pokemon.wikia.com/wiki/Pokémon_Wiki', limit=200)
+    c = Crawler('http://pokemon.wikia.com', 'http://pokemon.wikia.com/wiki/Pokémon_Wiki', limit=200)
 
     for thing in c:
         print(thing.current_title())

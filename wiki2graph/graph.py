@@ -20,6 +20,6 @@ class Extractor:
 def extract(crawler, extractors=[]):
     results = []
     for e in extractors:
-        relations = e.extract(soup=crawler.soup)
+        relations = e.extract(crawler)
         results.extend(relations)
     return results
