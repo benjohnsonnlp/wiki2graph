@@ -1,7 +1,7 @@
 import logging
 
 from wiki2graph.crawler import Crawler
-from wiki2graph.graph import extract, Extractor, Concept
+from wiki2graph.graph import extract, Extractor, Concept, Relation
 
 
 class PokemonExtractor(Extractor):
@@ -21,9 +21,13 @@ class PokemonExtractor(Extractor):
         pokemon_object.properties['image'] = image
 
         # evolution relation
+        evolves_into_label = soup.find(lambda x: x.text.strip().startswith("Evolves into"))
+        evolves_into_url = evolves_into_label.contents[2].contents[0].attrs['href'].strip()
+        evolves_into = Relation('evolves-into', pokemon_object, evolves_into_url)
 
         return [
-            pokemon_object
+            pokemon_object,
+            evolves_into,
         ]
 
 
