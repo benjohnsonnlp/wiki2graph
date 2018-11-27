@@ -24,6 +24,8 @@ class DefaultPrioritizationScheme:
         if page.startswith('/wiki'):
             if '?' in page:
                 output = (100, page)  # pages with a ? in the url are usually talk pages
+            elif ':' in page:
+                output = (75, page)  # lots of colons in episode titles
             else:
                 output = (50, page)  # assign a mid level priority to pages in the wiki
         else:
