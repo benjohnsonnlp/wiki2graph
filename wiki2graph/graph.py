@@ -4,11 +4,18 @@ class Concept:
         self.url = url
         self.properties = {}
 
+    def __str__(self):
+        return "{}, from {}, with properties: {}".format(self.name, self.url, self.properties)
+
 
 class Relation:
-    def __init__(self, domain, range):
+    def __init__(self, type, domain, range):
+        self.type = type
         self.domain = domain
         self.range = range
+
+    def __str__(self):
+        return "{}({},{})".format(self.type, self.domain, self.range)
 
 
 class Extractor:

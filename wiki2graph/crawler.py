@@ -3,6 +3,7 @@ import logging
 import os
 from heapq import heappop, heappush
 
+import unidecode
 from bs4 import BeautifulSoup
 from selenium import webdriver
 
@@ -95,6 +96,7 @@ class Crawler:
             # self.html = requests.get(page_to_get).text
             self.cache_current()
 
+        self.html = unidecode.unidecode(self.html)
         self.soup = BeautifulSoup(self.html, 'html.parser')
         self.visited.append(self.current_page)
         self.get_next_pages()
