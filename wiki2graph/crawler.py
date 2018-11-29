@@ -3,9 +3,9 @@ import logging
 import os
 from heapq import heappop, heappush
 
+import requests
 import unidecode
 from bs4 import BeautifulSoup
-from selenium import webdriver
 
 logger = logging.getLogger(__name__)
 
@@ -64,8 +64,6 @@ class Crawler:
         self.html = ''
         self.soup = None
 
-        self.driver = webdriver.PhantomJS()
-
         next(self)
 
     def __iter__(self):
@@ -91,9 +89,10 @@ class Crawler:
 
             logger.info('Getting page: {}'.format(page_to_get))
 
-            self.driver.get(page_to_get)
-            self.html = self.driver.page_source
-            # self.html = requests.get(page_to_get).text
+            # driver = webdriver.PhantomJS()
+            # driver.get(page_to_get)
+            # self.html = driver.page_source
+            self.html = requests.get(page_to_get).text
             self.cache_current()
 
         self.html = unidecode.unidecode(self.html)
@@ -125,6 +124,9 @@ class Crawler:
 
     def current_title(self):
         return self.soup.find_all('title')[0].text
+
+    def add_url_with_priority(self, url, priority=50):
+        heappush(self.next_pages, (priority, url))
 
 
 if __name__ == '__main__':
