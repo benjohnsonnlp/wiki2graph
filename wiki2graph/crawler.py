@@ -64,14 +64,14 @@ class Crawler:
         self.html = ''
         self.soup = None
 
-        next(self)
+        # next(self)
 
     def __iter__(self):
         return self
 
     def __next__(self):
         if not self.next_pages or len(self.visited) == self.limit:
-            return None
+            raise StopIteration
 
         self.current_page = heappop(self.next_pages)[1]
         while self.current_page in self.visited:

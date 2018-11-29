@@ -1,11 +1,22 @@
+import json
+import re
+
+
 class Concept:
-    def __init__(self, name, url):
-        self.name = name
+    def __init__(self, type, url, properties={}):
+        self.type = type
         self.url = url
-        self.properties = {}
+        self.properties = properties
+        self.properties['url'] = self.url
 
     def __str__(self):
-        return "{}, from {}, with properties: {}".format(self.name, self.url, self.properties)
+        return "{}, from {}, with properties: {}".format(self.type, self.url, self.properties)
+
+    def __eq__(self, other):
+        return other.url == self.url
+
+    def __hash__(self):
+        return self.url.__hash__()
 
 
 class Relation:
@@ -19,13 +30,13 @@ class Relation:
 
 
 class Graph:
-    def __init__(self, concepts=[], relations=[]):
+    def __init__(self, concepts=set(), relations=set()):
         self.concepts = concepts
         self.relations = relations
 
-    def extend(self, graph):
-        self.concepts.extend(graph.concepts)
-        self.relations.extend(graph.relations
+    def extend(self, rhs):
+        self.concepts.union(rhs.concepts)
+        self.relations.union(rhs.relations)
 
 
 def resolve_graph(graph):
@@ -33,7 +44,7 @@ def resolve_graph(graph):
     for concept in graph.concepts:
         url_to_concept[concept.url] = concept
     for relation in graph.relations:
-        if isinstance(relation.range, str):
+        if isinstance(relation.range, str) and relation.range in url_to_concept:
             relation.range = url_to_concept[relation.range]
 
 
@@ -46,6 +57,26 @@ def get_cypher_for_graph(graph):
 
     resolve_graph(graph)
 
+    cql = ''
+    sep = "WITH count(*) AS f"
+    for concept in graph.concepts:
+        cql += 'CREATE (:{} {}) WITH count(*) AS f\n'.format(concept.type, json.dumps(concept.properties, indent=2))
+    cql = re.sub(r'(?<!: )"(\S*?)"', '\\1', cql)
+    cql += '\n\n'
+    for relation in graph.relations:
+        if not isinstance(relation.range, str):
+            cql += 'MATCH (domain:{}) where domain.url = \"{}\"\n' \
+                   'OPTIONAL MATCH (range:{}) where range.url = \"{}\"\n' \
+                   'CREATE (domain)-[:{}]->(range) {}\n'.format(
+                relation.domain.type,
+                relation.domain.url,
+                relation.range.type,
+                relation.range.url,
+                relation.type, sep
+
+            )
+    cql = cql[:len(cql) - len(sep) - 2] + ';'  # remove last WITH AS
+    return cql
 
 class Extractor:
     # returns a list of concepts and/or relations
@@ -54,8 +85,7 @@ class Extractor:
 
 
 def extract(crawler, extractors=[]):
-    results = []
+    results = Graph()
     for e in extractors:
-        relations = e.extract(crawler)
-        results.extend(relations)
+        results.extend(e.extract(crawler))
     return results
