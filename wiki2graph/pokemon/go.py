@@ -48,6 +48,14 @@ class PokemonExtractor(Extractor):
             graph.relations.add(Relation('has_ability', pokemon_object, url))
             high_priority_urls.append(url)
 
+        pokedex = get_tr_with_label(soup, "Pokedex")
+        if pokedex:
+            next_pokedex = [a.attrs['href'] for a in
+                            list(get_tr_with_label(soup, "Pokedex").next_elements)[4].select('a')]
+            high_priority_urls.extend(next_pokedex)
+            for item in next_pokedex:
+                graph.relations.add(Relation('next_in_pokedex', pokemon_object, item))
+
         for url in high_priority_urls:
             logger.info("Adding {} to crawler list with highest priority...".format(url))
             crawler.add_url_with_priority(url, 1)
@@ -89,7 +97,7 @@ if __name__ == '__main__':
     # c = Crawler('http://pokemon.wikia.com', 'http://pokemon.wikia.com/wiki/Pokémon_Wiki', limit=200)
     g = Graph()
     # c = Crawler('http://pokemon.wikia.com', '/wiki/Category:Generation_I_Pok%C3%A9mon', limit=400)
-    c = Crawler('http://pokemon.wikia.com', '/wiki/Bulbasaur', limit=400)
+    c = Crawler('http://pokemon.wikia.com', '/wiki/Bulbasaur', limit=800)
     # g.extend(extract(c, extractors=[PokemonExtractor(), ]))
     for thing in c:
         g.extend(extract(c, extractors=[PokemonExtractor(), SkillExtractor(), ]))

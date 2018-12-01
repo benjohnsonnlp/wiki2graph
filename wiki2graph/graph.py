@@ -79,8 +79,14 @@ def get_cypher_for_graph(graph):
     return cql
 
 class Extractor:
+
     # returns a list of concepts and/or relations
     def extract(self, soup):
+        """
+        extract graph from page
+        :param soup: the bs4 object from the crawler
+        :return: a graph
+        """
         pass
 
 
