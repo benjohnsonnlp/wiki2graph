@@ -1,6 +1,8 @@
 import json
 import re
 
+from neo4j.v1 import GraphDatabase
+
 
 class Concept:
     def __init__(self, type, url, properties={}):
@@ -48,35 +50,47 @@ def resolve_graph(graph):
             relation.range = url_to_concept[relation.range]
 
 
-def get_cypher_for_graph(graph):
+def get_cypher_for_graph(graph, sep='WITH count(*) AS f'):
     """
     gets a cql string for the graph
     :param graph: a Graph
-    :return: cql string
+    :return: list of cypher statements
     """
 
     resolve_graph(graph)
 
-    cql = ''
-    sep = "WITH count(*) AS f"
+    cql = []
     for concept in graph.concepts:
-        cql += 'CREATE (:{} {}) WITH count(*) AS f\n'.format(concept.type, json.dumps(concept.properties, indent=2))
-    cql = re.sub(r'(?<!: )"(\S*?)"', '\\1', cql)
-    cql += '\n\n'
+        query = 'MERGE (a:{} {}){}'.format(concept.type, json.dumps(concept.properties), sep)
+        query = re.sub(r'(?<!: )"(\S*?)"', '\\1', query)
+        cql.append(query)
+    # cql = re.sub(r'(?<!: )"(\S*?)"', '\\1', cql)
+    # cql += '\n\n'
     for relation in graph.relations:
         if not isinstance(relation.range, str):
-            cql += 'MATCH (domain:{}) where domain.url = \"{}\"\n' \
-                   'OPTIONAL MATCH (range:{}) where range.url = \"{}\"\n' \
-                   'CREATE (domain)-[:{}]->(range) {}\n'.format(
+            cql.append('MATCH (domain:{}) where domain.url = \"{}\"\n' \
+                       'OPTIONAL MATCH (range:{}) where range.url = \"{}\"\n' \
+                       'MERGE (domain)-[:{}]->(range) {}\n'.format(
                 relation.domain.type,
                 relation.domain.url,
                 relation.range.type,
                 relation.range.url,
-                relation.type, sep
-
-            )
-    cql = cql[:len(cql) - len(sep) - 2] + ';'  # remove last WITH AS
+                relation.type,
+                sep
+            ))
+    # cql = cql[:len(cql) - len(sep) - 2]  # remove last WITH AS
     return cql
+
+
+def save_graph_to_neo(graph, uri, user, password):
+    graph_db = GraphDatabase.driver(uri, auth=(user, password))
+
+    with graph_db.session() as session:
+        for query in get_cypher_for_graph(graph, ';'):
+            session.write_transaction(lambda tx: tx.run(query))
+
+    graph_db.close()
+
 
 class Extractor:
 
