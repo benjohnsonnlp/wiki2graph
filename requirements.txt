@@ -1,6 +1,14 @@
+## The following requirements were added by pip freeze:
 beautifulsoup4==4.6.3
 certifi==2018.10.15
 chardet==3.0.4
 idna==2.7
+neo4j-driver==1.7.1
+neobolt==1.7.3
+neotime==1.7.4
+pytz==2018.7
 requests==2.20.1
+selenium==3.8.0
+six==1.12.0
+Unidecode==1.0.23
 urllib3==1.24.1

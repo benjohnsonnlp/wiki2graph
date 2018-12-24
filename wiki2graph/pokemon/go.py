@@ -1,7 +1,8 @@
 import logging
+from threading import Thread
 
 from wiki2graph.crawler import Crawler
-from wiki2graph.graph import extract, Extractor, Concept, Relation, Graph, get_cypher_for_graph
+from wiki2graph.graph import extract, Extractor, Concept, Relation, Graph, get_cypher_for_graph, save_graph_to_neo
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +102,16 @@ if __name__ == '__main__':
     # g.extend(extract(c, extractors=[PokemonExtractor(), ]))
     for thing in c:
         g.extend(extract(c, extractors=[PokemonExtractor(), SkillExtractor(), ]))
+
+
+        # TODO: make graph creds configurable
+        def save_graph():
+            save_graph_to_neo(g, "bolt://localhost:7687", 'neo4j', 'password')
+
+
+        t = Thread(target=save_graph)
+        t.run()
+
         logger.info('Graph now has {} concepts and {} relations.'.format(len(g.concepts), len(g.relations)))
 
     with open('poke.cql', 'w') as f:
