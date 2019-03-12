@@ -24,6 +24,7 @@ Creating an extractor for another domain requires two parts:
 1. Create an extractor that inherits from Extractor (in wiki2graph.graph) 
 
 ```class PokemonExtractor(Extractor)```
+
 2. When you create your crawler, send a list of the extractors you created (NOTE: currently doesn't work this way but it should) 
 
 ```c = Crawler('http://pokemon.wikia.com', '/wiki/Bulbasaur', limit=800, extractors=[YOUR EXTRACTORS HERE])```
