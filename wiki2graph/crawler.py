@@ -132,5 +132,5 @@ class Crawler:
 if __name__ == '__main__':
     c = Crawler('http://pokemon.wikia.com', 'http://pokemon.wikia.com/wiki/Pokémon_Wiki', limit=200)
 
-    for thing in c:
-        print(thing.current_title())
+    # for thing in c:
+    #     print(thing.current_title())

@@ -1,5 +1,10 @@
 import logging
+# so it can be called from parent dir and without PYTHONPATH=.:$PYTHONPATH
+import os
+import sys
 from threading import Thread
+
+sys.path.append(os.getcwd())
 
 from wiki2graph.crawler import Crawler
 from wiki2graph.graph import Extractor, Concept, Relation, Graph, save_graph_to_neo, get_cypher_for_graph, extract
@@ -94,6 +99,7 @@ class SkillExtractor(Extractor):
 
 
 if __name__ == '__main__':
+
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(format=FORMAT, level=logging.INFO)
     # c = Crawler('http://pokemon.wikia.com', 'http://pokemon.wikia.com/wiki/Pokémon_Wiki', limit=200)
