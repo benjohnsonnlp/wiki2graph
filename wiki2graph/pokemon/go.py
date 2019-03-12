@@ -28,12 +28,12 @@ class PokemonExtractor(Extractor):
         high_priority_urls = []
 
         logger.info("Parsing pokemon found for {}".format(crawler.current_title()))
+
         # ok we have a pokemon
         name = soup.select('.page-header__title')[0].text
         pokemon_object = Concept("Pokemon", crawler.current_page, {'name': name})
 
         # image
-
         image = soup.select('.PokeBox img')[0].attrs['src']
         pokemon_object.properties['image'] = image
         logger.info("Adding {} to the graph...".format(pokemon_object))
@@ -48,6 +48,7 @@ class PokemonExtractor(Extractor):
             high_priority_urls.append(evolves_into_url)
             graph.relations.add(evolves_into)
 
+        # get ability info
         abilites_label = get_tr_with_label(soup, "Abilities")
 
         for item in abilites_label.contents[2].select('a'):
@@ -55,6 +56,8 @@ class PokemonExtractor(Extractor):
             graph.relations.add(Relation('has_ability', pokemon_object, url))
             high_priority_urls.append(url)
 
+        # pokedex relation
+        # TODO:  BUG somehow this is getting reversed
         pokedex = get_tr_with_label(soup, "Pokedex")
         if pokedex:
             next_pokedex = [a.attrs['href'] for a in
@@ -63,6 +66,8 @@ class PokemonExtractor(Extractor):
             for item in next_pokedex:
                 graph.relations.add(Relation('next_in_pokedex', pokemon_object, item))
 
+        # add URLs for other entities into crawler priority queue
+        # TODO: work this into object scheme better
         for url in high_priority_urls:
             logger.info("Adding {} to crawler list with highest priority...".format(url))
             crawler.add_url_with_priority(url, 1)
