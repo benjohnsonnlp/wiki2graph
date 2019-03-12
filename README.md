@@ -14,3 +14,16 @@ A wiki crawler to populate a neo4j graph database.
 ## Production deployment
 
 For now, as Development installation
+
+## Example usage
+
+The [pokemon extractor](wiki2graph/pokemon/go.py) is a "plug in" for the crawler that lets it recognize pokemon-related entities and relations.
+
+Creating an extractor for another domain requires two parts:
+
+1. Create an extractor that inherits from Extractor (in wiki2graph.graph) 
+
+```class PokemonExtractor(Extractor)```
+2. When you create your crawler, send a list of the extractors you created (NOTE: currently doesn't work this way but it should) 
+
+```c = Crawler('http://pokemon.wikia.com', '/wiki/Bulbasaur', limit=800, extractors=[YOUR EXTRACTORS HERE])```
