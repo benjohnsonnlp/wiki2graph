@@ -1,8 +1,6 @@
 import logging
-from threading import Thread
 
-from wiki2graph.crawler import Crawler
-from wiki2graph.graph import extract, Extractor, Concept, Relation, Graph, get_cypher_for_graph, save_graph_to_neo
+from wiki2graph.graph import Extractor, Concept, Relation, Graph, save_graph_to_neo
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +26,7 @@ class PokemonExtractor(Extractor):
         pokemon_object = Concept("Pokemon", crawler.current_page, {'name': name})
 
         # image
+
         image = soup.select('.PokeBox img')[0].attrs['src']
         pokemon_object.properties['image'] = image
         logger.info("Adding {} to the graph...".format(pokemon_object))
