@@ -56,6 +56,15 @@ class PokemonExtractor(Extractor):
             graph.relations.add(Relation('has_ability', pokemon_object, url))
             high_priority_urls.append(url)
 
+        # Add pokemon typing
+        types_label = get_tr_with_label(soup, "Type(s)")
+
+        for item in types_label.find_all('a'):
+            if "type" in item['title'].strip():
+                type_url = item.attrs['href'].strip()
+                graph.relations.add(Relation('has_type', pokemon_object, type_url))
+                high_priority_urls.append(type_url)
+
         # pokedex relation
         # TODO:  BUG somehow this is getting reversed
         pokedex = get_tr_with_label(soup, "Pokedex")
@@ -101,6 +110,12 @@ class SkillExtractor(Extractor):
             graph.concepts.add(ability)
 
         return graph
+
+class TypeExtractor(Extractor):
+    def extract(self, crawler):
+        soup = crawler.soup
+
+        graph = Graph()
 
 
 if __name__ == '__main__':
