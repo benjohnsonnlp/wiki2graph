@@ -127,4 +127,4 @@ if __name__ == '__main__':
         logger.info('Graph now has {} concepts and {} relations.'.format(len(g.concepts), len(g.relations)))
 
     with open('poke.cql', 'w') as f:
-        f.write(get_cypher_for_graph(g))
+        f.write('\n'.join(get_cypher_for_graph(g)))
