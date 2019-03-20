@@ -95,6 +95,10 @@ class SkillExtractor(Extractor):
             ability = Concept('Ability', crawler.current_page, {'name': name})
             logger.info('Adding {} to the graph...'.format(name))
             graph.concepts.add(ability)
+
+            skill_type = soup.find_all("span", class_="t-type")[0].find('a').attrs['href'].strip()
+            graph.relations.add(Relation('is_type', ability, skill_type))
+            
             return graph
 
         cats = soup.select('ul.categories a')
@@ -108,6 +112,10 @@ class SkillExtractor(Extractor):
             ability = Concept('Ability', crawler.current_page, {'name': name})
             logger.info('Adding {} to the graph...'.format(name))
             graph.concepts.add(ability)
+            skill_type = soup.find_all("span", class_="t-type")
+            if len(skill_type) >= 1:
+                skill_type = skill_type[0].find('a').attrs['href'].strip()
+                graph.relations.add(Relation('is_type', ability, skill_type))
 
         return graph
 
