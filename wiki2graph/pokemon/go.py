@@ -116,7 +116,15 @@ class TypeExtractor(Extractor):
         soup = crawler.soup
 
         graph = Graph()
+        cats = soup.select('ul.categories a')
+        for cat in cats:
+            if cat.text == 'Types':
+                name = soup.select('.page-header__title')[0].text.strip().split()
+                pokemon_type = Concept('Type', crawler.current_page, {'name': name[0]})
+                logger.info('Adding {} to the graph...'.format(name[0]))
+                graph.concepts.add(pokemon_type)
 
+        return graph
 
 if __name__ == '__main__':
 
@@ -128,7 +136,7 @@ if __name__ == '__main__':
     c = Crawler('http://pokemon.wikia.com', '/wiki/Bulbasaur', limit=800)
     # g.extend(extract(c, extractors=[PokemonExtractor(), ]))
     for thing in c:
-        g.extend(extract(c, extractors=[PokemonExtractor(), SkillExtractor(), ]))
+        g.extend(extract(c, extractors=[PokemonExtractor(), SkillExtractor(), TypeExtractor(), ]))
 
 
         # TODO: make graph creds configurable
