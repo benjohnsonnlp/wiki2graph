@@ -132,6 +132,33 @@ class TypeExtractor(Extractor):
                 logger.info('Adding {} to the graph...'.format(name[0]))
                 graph.concepts.add(pokemon_type)
 
+                titles = soup.find_all("span", class_='mw-headline')
+                for title in titles:
+                    if "Effectiveness" in title.text:
+                        superEffect = title.find_next('pre')
+                        for strong in superEffect.find_all('a'):
+                            url = strong.attrs['href']
+                            if name[0] in url:
+                                url = crawler.current_page
+                            graph.relations.add(Relation('super_effective_against', pokemon_type, url))
+
+                        notVeryEffect = superEffect.find_next('pre')
+                        for weak in notVeryEffect.find_all('a'):
+                            url = weak.attrs['href']
+                            if name[0] in url:
+                                url = crawler.current_page
+                            graph.relations.add(Relation('not_very_effective_against', pokemon_type, url))
+                        
+                        inEffect = notVeryEffect.find_next('pre')
+                        if inEffect:
+                            for nothing in inEffect.find_all('a'):
+                                url = nothing.attrs['href']
+                                if name[0] in url:
+                                    url = crawler.current_page
+                                graph.relations.add(Relation('ineffective_against', pokemon_type, url))
+
+                
+
         return graph
 
 if __name__ == '__main__':
