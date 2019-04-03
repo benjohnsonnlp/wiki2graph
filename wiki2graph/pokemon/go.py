@@ -98,6 +98,7 @@ class SkillExtractor(Extractor):
 
             skill_type = soup.find_all("span", class_="t-type")[0].find('a').attrs['href'].strip()
             graph.relations.add(Relation('is_type', ability, skill_type))
+            logger.info('Adding {} is_type {} to the graph...'.format(name, skill_type.split("/")[2].split("_")[0]))
             
             return graph
 
@@ -116,6 +117,7 @@ class SkillExtractor(Extractor):
             if len(skill_type) >= 1:
                 skill_type = skill_type[0].find('a').attrs['href'].strip()
                 graph.relations.add(Relation('is_type', ability, skill_type))
+                logger.info('Adding {} is_type {} to the graph...'.format(name, skill_type.split("/")[2].split("_")[0]))
 
         return graph
 
@@ -137,25 +139,28 @@ class TypeExtractor(Extractor):
                     if "Effectiveness" in title.text:
                         superEffect = title.find_next('pre')
                         for strong in superEffect.find_all('a'):
-                            url = strong.attrs['href']
+                            url = strong.attrs['href'].strip()
                             if name[0] in url:
                                 url = crawler.current_page
                             graph.relations.add(Relation('super_effective_against', pokemon_type, url))
+                            logger.info('Adding {} type is super effective against {} type to the graph...'.format(name[0], url.split("/")[2].split("_")[0]))
 
                         notVeryEffect = superEffect.find_next('pre')
                         for weak in notVeryEffect.find_all('a'):
-                            url = weak.attrs['href']
+                            url = weak.attrs['href'].strip()
                             if name[0] in url:
                                 url = crawler.current_page
                             graph.relations.add(Relation('not_very_effective_against', pokemon_type, url))
+                            logger.info('Adding {} type is not very effective against {} type to the graph...'.format(name[0], url.split("/")[2].split("_")[0]))
                         
                         inEffect = notVeryEffect.find_next('pre')
                         if inEffect:
                             for nothing in inEffect.find_all('a'):
-                                url = nothing.attrs['href']
+                                url = nothing.attrs['href'].strip()
                                 if name[0] in url:
                                     url = crawler.current_page
                                 graph.relations.add(Relation('ineffective_against', pokemon_type, url))
+                                logger.info('Adding {} type is ineffective against {} type to the graph...'.format(name[0], url.split("/")[2].split("_")[0]))
 
                 
 
