@@ -56,6 +56,15 @@ class PokemonExtractor(Extractor):
             graph.relations.add(Relation('has_ability', pokemon_object, url))
             high_priority_urls.append(url)
 
+        # Add pokemon typing
+        types_label = get_tr_with_label(soup, "Type(s)")
+
+        for item in types_label.find_all('a'):
+            if "type" in item['title'].strip():
+                type_url = item.attrs['href'].strip()
+                graph.relations.add(Relation('has_type', pokemon_object, type_url))
+                high_priority_urls.append(type_url)
+
         # pokedex relation
         # TODO:  BUG somehow this is getting reversed
         pokedex = get_tr_with_label(soup, "Pokedex")
@@ -86,6 +95,11 @@ class SkillExtractor(Extractor):
             ability = Concept('Ability', crawler.current_page, {'name': name})
             logger.info('Adding {} to the graph...'.format(name))
             graph.concepts.add(ability)
+
+            skill_type = soup.find_all("span", class_="t-type")[0].find('a').attrs['href'].strip()
+            graph.relations.add(Relation('is_type', ability, skill_type))
+            logger.info('Adding {} is_type {} to the graph...'.format(name, skill_type.split("/")[2].split("_")[0]))
+            
             return graph
 
         cats = soup.select('ul.categories a')
@@ -99,9 +113,58 @@ class SkillExtractor(Extractor):
             ability = Concept('Ability', crawler.current_page, {'name': name})
             logger.info('Adding {} to the graph...'.format(name))
             graph.concepts.add(ability)
+            skill_type = soup.find_all("span", class_="t-type")
+            if len(skill_type) >= 1:
+                skill_type = skill_type[0].find('a').attrs['href'].strip()
+                graph.relations.add(Relation('is_type', ability, skill_type))
+                logger.info('Adding {} is_type {} to the graph...'.format(name, skill_type.split("/")[2].split("_")[0]))
 
         return graph
 
+class TypeExtractor(Extractor):
+    def extract(self, crawler):
+        soup = crawler.soup
+
+        graph = Graph()
+        cats = soup.select('ul.categories a')
+        for cat in cats:
+            if cat.text == 'Types':
+                name = soup.select('.page-header__title')[0].text.strip().split()
+                pokemon_type = Concept('Type', crawler.current_page, {'name': name[0]})
+                logger.info('Adding {} to the graph...'.format(name[0]))
+                graph.concepts.add(pokemon_type)
+
+                titles = soup.find_all("span", class_='mw-headline')
+                for title in titles:
+                    if "Effectiveness" in title.text:
+                        superEffect = title.find_next('pre')
+                        for strong in superEffect.find_all('a'):
+                            url = strong.attrs['href'].strip()
+                            if name[0] in url:
+                                url = crawler.current_page
+                            graph.relations.add(Relation('super_effective_against', pokemon_type, url))
+                            logger.info('Adding {} type is super effective against {} type to the graph...'.format(name[0], url.split("/")[2].split("_")[0]))
+
+                        notVeryEffect = superEffect.find_next('pre')
+                        for weak in notVeryEffect.find_all('a'):
+                            url = weak.attrs['href'].strip()
+                            if name[0] in url:
+                                url = crawler.current_page
+                            graph.relations.add(Relation('not_very_effective_against', pokemon_type, url))
+                            logger.info('Adding {} type is not very effective against {} type to the graph...'.format(name[0], url.split("/")[2].split("_")[0]))
+                        
+                        inEffect = notVeryEffect.find_next('pre')
+                        if inEffect:
+                            for nothing in inEffect.find_all('a'):
+                                url = nothing.attrs['href'].strip()
+                                if name[0] in url:
+                                    url = crawler.current_page
+                                graph.relations.add(Relation('ineffective_against', pokemon_type, url))
+                                logger.info('Adding {} type is ineffective against {} type to the graph...'.format(name[0], url.split("/")[2].split("_")[0]))
+
+                
+
+        return graph
 
 if __name__ == '__main__':
 
@@ -113,7 +176,7 @@ if __name__ == '__main__':
     c = Crawler('http://pokemon.wikia.com', '/wiki/Bulbasaur', limit=800)
     # g.extend(extract(c, extractors=[PokemonExtractor(), ]))
     for thing in c:
-        g.extend(extract(c, extractors=[PokemonExtractor(), SkillExtractor(), ]))
+        g.extend(extract(c, extractors=[PokemonExtractor(), SkillExtractor(), TypeExtractor(), ]))
 
 
         # TODO: make graph creds configurable
