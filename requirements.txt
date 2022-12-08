@@ -1,6 +1,6 @@
 ## The following requirements were added by pip freeze:
 beautifulsoup4==4.6.3
-certifi==2018.10.15
+certifi==2022.12.7
 chardet==3.0.4
 idna==2.7
 neo4j-driver==1.7.1
